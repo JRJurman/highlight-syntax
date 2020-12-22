@@ -19,17 +19,20 @@ module.exports = function (rules) {
         function g (x) { return x.map(f) }
       })
     }
-    var kw0 = {}, kw1 = {}, kw2 = {}
-    ;(r.kw0 || []).forEach(function (key) { kw0[key] = true })
-    ;(r.kw1 || []).forEach(function (key) { kw1[key] = true })
-    ;(r.kw2 || []).forEach(function (key) { kw2[key] = true })
+    // support any number of keyword rules
+    var iskwKey = (key) => key.indexOf('kw') === 0
+    var kws = Object.keys(rules[0]).filter(iskwKey) // [kw0, kw1, etc...]
+    kws.forEach((kw) => {
+      this[kw] = {}
+      ;(r[kw] || []).forEach((key) => { this[kw][key] = true })
+    })
     var tokens = tokenize(src, rrules[ri])
     return '<span class="' + r.name + '">' + tokens.map(function f (t) {
       var c = xclass(t.type)
       if (t.type === 'identifier') {
-        if (kw0[t.source]) c += ' kw0 kw-' + xclass(t.source)
-        else if (kw1[t.source]) c += ' kw1 kw-' + xclass(t.source)
-        else if (kw2[t.source]) c += ' kw2 kw-' + xclass(t.source)
+        kws.forEach((kw) => {
+          if (this[kw][t.source]) c += ` ${kw} kw-` + xclass(t.source)
+        })
       }
       return '<span class="' + c + '">'
         + (t.children ? t.children.map(g).join('') : esc(t.source))
